@@ -1,0 +1,31 @@
+=========================================================================================
+                             KISAN MANDI CONNECT - PROFIT REPORT                        
+=========================================================================================
+Generated At    : 2026-10-16 01:11:56
+Farmer Village  : Niphad
+Crop Type       : Nashik Red Onion (PERISHABLE)
+Harvest Quantity: 40.00 Quintals (4000 kg)
+-----------------------------------------------------------------------------------------
+TOP RECOMMENDATION (MAXIMUM NET PROFIT):
+  Mandi Name      : Lasalgaon APMC [Nashik, Maharashtra]
+  Net Profit      : ₹105,916.64
+  Mandi Price     : ₹2750.00 / quintal
+  Gross Revenue   : ₹110,000.00
+  Transport Cost  : ₹2,732.00 (Distance: 16.0 km)
+  Recommended Route: Niphad -> Lasalgaon APMC
+-----------------------------------------------------------------------------------------
+Rank  Mandi Name             Dist (km)  Price/qtl    Gross (₹)    Freight (₹)  Net Profit (₹)
+-----------------------------------------------------------------------------------------
+1     Lasalgaon APMC         16.0       ₹2750.00     ₹110000.00   ₹2732.00     ₹105916.64    
+2     Nashik APMC            38.0       ₹2600.00     ₹104000.00   ₹6076.00     ₹96393.52     
+3     Vashi APMC (Navi Mumbai) 200.0      ₹2820.00     ₹112800.00   ₹30700.00    ₹79677.60     
+4     Ahmednagar APMC        160.0      ₹2520.00     ₹100800.00   ₹24620.00    ₹74556.00     
+5     Pune APMC (Gultekdi)   260.0      ₹2480.00     ₹99200.00    ₹39820.00    ₹57382.40     
+6     Jalgaon APMC           281.0      ₹2460.00     ₹98400.00    ₹43012.00    ₹53656.44     
+7     Solapur APMC           399.0      ₹2580.00     ₹103200.00   ₹60948.00    ₹40128.36     
+8     Kolhapur APMC (Shahupuri) 492.0      ₹2420.00     ₹96800.00    ₹75084.00    ₹19299.68     
+9     Latur APMC             494.0      ₹2390.00     ₹95600.00    ₹75388.00    ₹17905.36     
+10    Nagpur APMC (Kalamna)  961.0      ₹2350.00     ₹94000.00    ₹146372.00   ₹-55665.56    
+=========================================================================================
+Formula: Net Profit = (Mandi Price x Quantity) - Transport Freight - Mandi Cess - Losses
+=========================================================================================

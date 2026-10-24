@@ -1,0 +1,11 @@
+Rank,Mandi Name,District,State,Crop,Quantity (qtl),Distance (km),Price (INR/qtl),Gross Revenue (INR),Transport Cost (INR),Mandi Cess (INR),Transit Loss (INR),Net Profit (INR),Route
+1,"Lasalgaon APMC","Nashik","Maharashtra","Nashik Red Onion",40.00,16.00,2750.00,110000.00,2732.00,1320.00,31.36,105916.64,"Niphad -> Lasalgaon APMC"
+2,"Nashik APMC","Nashik","Maharashtra","Nashik Red Onion",40.00,38.00,2600.00,104000.00,6076.00,1456.00,74.48,96393.52,"Niphad -> Nashik APMC"
+3,"Vashi APMC (Navi Mumbai)","Thane","Maharashtra","Nashik Red Onion",40.00,200.00,2820.00,112800.00,30700.00,2030.40,392.00,79677.60,"Niphad -> Nashik APMC -> Vashi APMC (Navi Mumbai)"
+4,"Ahmednagar APMC","Ahmednagar","Maharashtra","Nashik Red Onion",40.00,160.00,2520.00,100800.00,24620.00,1310.40,313.60,74556.00,"Niphad -> Lasalgaon APMC -> Yeola -> Kopargaon -> Rahata -> Ahmednagar APMC"
+5,"Pune APMC (Gultekdi)","Pune","Maharashtra","Nashik Red Onion",40.00,260.00,2480.00,99200.00,39820.00,1488.00,509.60,57382.40,"Niphad -> Nashik APMC -> Sinnar -> Sangamner -> Alephata -> Narayangaon -> Khed -> Pune APMC (Gultekdi)"
+6,"Jalgaon APMC","Jalgaon","Maharashtra","Nashik Red Onion",40.00,281.00,2460.00,98400.00,43012.00,1180.80,550.76,53656.44,"Niphad -> Nashik APMC -> Dhule -> Jalgaon APMC"
+7,"Solapur APMC","Solapur","Maharashtra","Nashik Red Onion",40.00,399.00,2580.00,103200.00,60948.00,1341.60,782.04,40128.36,"Niphad -> Lasalgaon APMC -> Yeola -> Kopargaon -> Rahata -> Ahmednagar APMC -> Daund -> Kurduvadi -> Mohol -> Solapur APMC"
+8,"Kolhapur APMC (Shahupuri)","Kolhapur","Maharashtra","Nashik Red Onion",40.00,492.00,2420.00,96800.00,75084.00,1452.00,964.32,19299.68,"Niphad -> Nashik APMC -> Sinnar -> Sangamner -> Alephata -> Narayangaon -> Khed -> Pune APMC (Gultekdi) -> Satara -> Kolhapur APMC (Shahupuri)"
+9,"Latur APMC","Latur","Maharashtra","Nashik Red Onion",40.00,494.00,2390.00,95600.00,75388.00,1338.40,968.24,17905.36,"Niphad -> Lasalgaon APMC -> Yeola -> Kopargaon -> Rahata -> Ahmednagar APMC -> Aurangabad -> Latur APMC"
+10,"Nagpur APMC (Kalamna)","Nagpur","Maharashtra","Nashik Red Onion",40.00,961.00,2350.00,94000.00,146372.00,1410.00,1883.56,-55665.56,"Niphad -> Lasalgaon APMC -> Yeola -> Kopargaon -> Rahata -> Ahmednagar APMC -> Aurangabad -> Latur APMC -> Nanded -> Yavatmal -> Nagpur APMC (Kalamna)"

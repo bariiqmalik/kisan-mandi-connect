@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kisan Mandi Connect — Smart APMC Logistics & Profit Optimizer</title>
+    <meta name="description" content="Agricultural decision engine helping Indian farmers discover highest net profit mandis with shortest highway driving routes, diesel freight deductions, and smart truck payload planning.">
+    
+    <!-- Theme Flash Prevention & Global Controller -->
+    <script>
+        (function() {
+            window.applyAppTheme = function(theme, syncMap) {
+                if (syncMap === undefined) syncMap = true;
+                document.documentElement.setAttribute('data-theme', theme);
+                if (document.body) {
+                    document.body.setAttribute('data-theme', theme);
+                    if (theme === 'dark') {
+                        document.body.classList.add('dark-theme');
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.body.classList.remove('dark-theme');
+                        document.documentElement.classList.remove('dark');
+                    }
+                }
+                try {
+                    localStorage.setItem('kisan_theme', theme);
+                } catch (e) {}
+
+                // Update Button Icon & Label
+                const iconEl = document.getElementById('themeBtnIcon');
+                const labelEl = document.getElementById('themeLabel');
+                const toggleBtn = document.getElementById('themeToggleBtn');
+
+                if (theme === 'dark') {
+                    if (labelEl) labelEl.textContent = 'Light Mode';
+                    if (toggleBtn) {
+                        toggleBtn.setAttribute('title', 'Switch to Light Mode');
+                        toggleBtn.setAttribute('aria-label', 'Switch to Light Mode');
+                        toggleBtn.classList.add('theme-active-dark');
+                    }
+                    if (iconEl) {
+                        iconEl.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="theme-svg sun-svg"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>';
+                    }
+                } else {
+                    if (labelEl) labelEl.textContent = 'Dark Mode';
+                    if (toggleBtn) {
+                        toggleBtn.setAttribute('title', 'Switch to Dark Mode');
+                        toggleBtn.setAttribute('aria-label', 'Switch to Dark Mode');
+                        toggleBtn.classList.remove('theme-active-dark');
+                    }
+                    if (iconEl) {
+                        iconEl.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="theme-svg moon-svg"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+                    }
+                }
+
+                // Sync Leaflet map layer if map is active
+                if (syncMap && typeof leafletMap !== 'undefined' && leafletMap && typeof switchMapLayer === 'function') {
+                    if (theme === 'dark' && currentTileKey === 'voyager') {
+                        switchMapLayer('dark');
+                    } else if (theme === 'light' && currentTileKey === 'dark') {
+                        switchMapLayer('voyager');
+                    }
+                }
+            };
+
+            window.toggleAppTheme = function() {
+                const current = document.documentElement.getAttribute('data-theme') || 'light';
+                const next = current === 'dark' ? 'light' : 'dark';
+                window.applyAppTheme(next, true);
+            };
+
+            try {
+                const savedTheme = localStorage.getItem('kisan_theme') || 
+                    (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', savedTheme);
+                if (savedTheme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                }
+            } catch (e) {}
+        })();
+    </script>
+
+    <!-- Google Fonts: Plus Jakarta Sans (UI) & JetBrains Mono (Data/Metrics) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet CSS for Real India Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    
+    <link rel="stylesheet" href="style.css?v=20261024_userloc">
+</head>
+<body>
+
+    <!-- ========================================== -->
+    <!-- ENTERPRISE SPLASH LOADING SCREEN           -->
+    <!-- ========================================== -->
+    <div id="appLoader" class="app-loader" role="progressbar" aria-label="Loading Application">
+        <div class="loader-glass-card">
+            <div class="loader-brand-wrapper">
+                <div class="loader-icon-liquid">
+                    <svg class="loader-logo-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+                        <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+                    </svg>
+                </div>
+                <h1 class="loader-title">Kisan Mandi Connect</h1>
+                <p class="loader-subtitle">APMC Market Intelligence & Logistics Engine</p>
+            </div>
+            
+            <div class="loader-progress-container">
+                <div class="loader-bar-track">
+                    <div id="loaderProgressBar" class="loader-bar-fill"></div>
+                </div>
+                <div class="loader-meta-row">
+                    <span id="loaderStatusText" class="loader-status-text">Booting APMC Graph Engine...</span>
+                    <span id="loaderPercentText" class="loader-percent-text">0%</span>
+                </div>
+            </div>
+
+            <div class="loader-chips">
+                <span class="loader-chip">
+                    <svg class="chip-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg>
+                    Shortest Highway Routes
+                </span>
+                <span class="loader-chip">
+                    <svg class="chip-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="m21 8-4-4-4 4"/><path d="M17 4v16"/></svg>
+                    Highest Profit Ranking
+                </span>
+                <span class="loader-chip">
+                    <svg class="chip-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="14" x="3" y="6" rx="2"/><path d="M3 10h18"/><path d="M8 2v4"/><path d="M16 2v4"/></svg>
+                    Smart Truck Loading
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- INTRO & LANGUAGE SELECTION MODAL           -->
+    <!-- ========================================== -->
+    <div id="languageModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-logo-svg">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+                        <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+                    </svg>
+                </div>
+                <h2 id="langModalTitle" class="modal-title">Welcome to Kisan Mandi Connect</h2>
+                <h3 class="modal-sub-hindi">किसान मंडी कनेक्ट में आपका स्वागत है</h3>
+                <p id="langModalSub" class="modal-desc" data-i18n="selectLanguageSubtitle">
+                    Select your preferred Indian language to get personalized mandi insights & take a tour:
+                </p>
+
+                <!-- What it does highlight box -->
+                <div class="intro-highlights-box">
+                    <div class="intro-feat">
+                        <div class="feat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                        </div>
+                        <div class="feat-text">
+                            <strong>100+ APMC Mandis</strong>
+                            <span>Real-time wholesale auction pricing across all Indian states</span>
+                        </div>
+                    </div>
+                    <div class="intro-feat">
+                        <div class="feat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg>
+                        </div>
+                        <div class="feat-text">
+                            <strong>Smart Highway Routes</strong>
+                            <span>Deduct actual highway distances, diesel freight & spoilage</span>
+                        </div>
+                    </div>
+                    <div class="intro-feat">
+                        <div class="feat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        </div>
+                        <div class="feat-text">
+                            <strong>True Net Profit Optimization</strong>
+                            <span>Identify highest net take-home pay and optimal truck loading</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Language Cards Grid (English + 12 Indian Languages) -->
+            <div class="language-section-header">
+                <span class="section-label">Choose your language / अपनी भाषा चुनें:</span>
+            </div>
+            <div id="languageGrid" class="language-grid">
+                <!-- Dynamically populated from i18n.js -->
+            </div>
+
+            <!-- Modal Footer Actions -->
+            <div class="modal-footer-dual">
+                <button id="startTourFromModalBtn" class="btn btn-primary btn-large">
+                    <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+                    <span data-i18n="takeTourBtn">Take Guided App Tour</span>
+                </button>
+                <button id="closeLangModalBtn" class="btn btn-outline btn-large">
+                    <span data-i18n="continueBtn">Explore App Directly</span>
+                    <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                </button>
+            </div>
+            <div class="modal-remember-row">
+                <label class="remember-label">
+                    <input type="checkbox" id="skipIntroCheckbox"> Don't show this intro automatically on next visit
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- LOCATION PERMISSION & ORIGIN SETUP MODAL   -->
+    <!-- ========================================== -->
+    <div id="locationPromptModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="locModalTitle">
+        <div class="modal-card location-modal-card">
+            <div class="modal-header">
+                <div class="modal-logo-svg loc-icon-svg">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="10" r="3"/>
+                        <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/>
+                    </svg>
+                </div>
+                <h2 id="locModalTitle" class="modal-title">Set Your Farm / Harvest Origin</h2>
+                <h3 class="modal-sub-hindi">अपनी फार्म या गाँव की लोकेशन चुनें</h3>
+                <p class="modal-desc">
+                    To compute real highway routes, live diesel freight, and recommend highest net-profit APMC mandis, we need your origin location:
+                </p>
+            </div>
+
+            <!-- 3 Setup Options -->
+            <div class="location-options-grid">
+                <!-- Option 1: GPS Automatic -->
+                <div class="loc-opt-card featured-loc-card">
+                    <div class="loc-opt-icon">🎯</div>
+                    <div class="loc-opt-body">
+                        <div class="loc-opt-badge">Recommended</div>
+                        <h4 class="loc-opt-title">Automatic GPS Detection</h4>
+                        <p class="loc-opt-desc">Allow browser location permission to automatically pinpoint your farm and find nearest highway connections.</p>
+                        <button type="button" id="btnModalAllowGps" class="btn btn-primary btn-block">
+                            <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" x2="12" y1="2" y2="5"/><line x1="12" x2="12" y1="19" y2="22"/><line x1="2" x2="5" y1="12" y2="12"/><line x1="19" x2="22" y1="12" y2="12"/></svg>
+                            <span>Allow Location Permission (GPS)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Option 2: Enter Manually -->
+                <div class="loc-opt-card">
+                    <div class="loc-opt-icon">✍️</div>
+                    <div class="loc-opt-body">
+                        <h4 class="loc-opt-title">Enter Location Manually</h4>
+                        <p class="loc-opt-desc">Search your village, district, or city from 100+ agricultural hubs across all Indian states.</p>
+                        <div class="modal-search-wrap">
+                            <input type="text" id="modalLocSearchInput" class="form-control" placeholder="Search city, village, or district..." autocomplete="off">
+                            <div id="modalLocSuggestions" class="location-suggestions-dropdown hidden"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Option 3: Select on Map -->
+                <div class="loc-opt-card">
+                    <div class="loc-opt-icon">🗺️</div>
+                    <div class="loc-opt-body">
+                        <h4 class="loc-opt-title">Select Directly on GIS Map</h4>
+                        <p class="loc-opt-desc">Click anywhere on our interactive road map of India or drag the farm pin to test different origins.</p>
+                        <button type="button" id="btnModalSelectMap" class="btn btn-outline btn-block">
+                            <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" x2="9" y1="3" y2="18"/><line x1="15" x2="15" y1="6" y2="21"/></svg>
+                            <span>Pick Farm on Map</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer-loc">
+                <button type="button" id="btnModalSkipDefault" class="btn-text-link">
+                    Continue with default origin (Junnar / Pune Valley) ➔
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- INTERACTIVE GUIDED TOUR SPOTLIGHT OVERLAY  -->
+    <!-- ========================================== -->
+    <div id="tourOverlay" class="tour-backdrop hidden">
+        <button id="tourOverlayCloseBtn" class="tour-backdrop-close" aria-label="Close Tour">✕ Close Tour</button>
+        <div id="tourSpotlight" class="tour-spotlight"></div>
+        <div id="tourTooltip" class="tour-tooltip">
+            <button id="tourTooltipCloseBtn" class="tooltip-close-btn" aria-label="Close Tour">✕</button>
+            <div class="tour-step-counter" id="tourStepCounter">1 / 6</div>
+            <h4 id="tourTitle" class="tour-title">Welcome!</h4>
+            <p id="tourBody" class="tour-body">Explore the app.</p>
+            <div class="tour-actions">
+                <button id="tourSkipBtn" class="btn btn-secondary btn-sm" data-i18n="tourSkip">Skip Tour</button>
+                <div class="tour-nav-group">
+                    <button id="tourPrevBtn" class="btn btn-outline btn-sm" data-i18n="tourPrev">Back</button>
+                    <button id="tourNextBtn" class="btn btn-primary btn-sm" data-i18n="tourNext">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TOP NAVIGATION BAR                         -->
+    <!-- ========================================== -->
+    <header class="app-header">
+        <div class="header-container">
+            <a href="#" class="brand" aria-label="Kisan Mandi Connect Home">
+                <div class="brand-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+                        <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <span class="brand-title" data-i18n="appTitle">Kisan Mandi Connect</span>
+                    <span class="brand-badge">APMC Intelligence & Logistics Engine</span>
+                </div>
+            </a>
+
+            <nav class="nav-links" id="mainNavLinks">
+                <a href="#cropCalculatorSection" class="nav-item active" data-i18n="navCalculator">Profit Calculator</a>
+                <a href="#knapsackSection" class="nav-item" data-i18n="navKnapsack">Truck Load Planner</a>
+                <a href="#bstSection" class="nav-item" data-i18n="navBST">Search by Price</a>
+                <a href="#graphVisualizerSection" class="nav-item" data-i18n="navGraph">Live India Map</a>
+                <a href="#benchmarkSection" class="nav-item" data-i18n="navBenchmark">Speed & Accuracy</a>
+            </nav>
+
+            <div class="header-actions">
+                <!-- Theme Toggle Button (Light / Dark) -->
+                <button type="button" id="themeToggleBtn" class="btn btn-outline btn-sm theme-toggle-btn" onclick="toggleAppTheme()" title="Toggle Dark/Light Mode" aria-label="Toggle Dark Mode">
+                    <span class="theme-btn-icon" id="themeBtnIcon">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="theme-svg moon-svg"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    </span>
+                    <span class="theme-label" id="themeLabel">Dark Mode</span>
+                </button>
+
+                <button id="tourBtn" class="btn btn-ghost btn-sm" title="Take guided walkthrough">
+                    <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+                    <span data-i18n="takeTourBtn">App Tour</span>
+                </button>
+
+                <button id="langModalBtn" class="btn btn-outline btn-sm lang-switch-btn" title="Choose language">
+                    <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    <span id="currentLangLabel">English</span>
+                </button>
+
+                <button id="mobileNavToggle" class="mobile-nav-toggle btn btn-ghost btn-sm" aria-label="Toggle menu">
+                    <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ========================================== -->
+    <!-- LIVE APMC COMMODITY TICKER BAR (REAL-TIME) -->
+    <!-- ========================================== -->
+    <div id="liveMarketTickerBar" class="live-ticker-bar" role="region" aria-label="Real-time Live Mandi Auction Ticker">
+        <div class="ticker-badge">
+            <span class="live-dot"></span>
+            <span class="ticker-badge-text">LIVE APMC FEED</span>
+        </div>
+        <div class="ticker-marquee-wrap">
+            <div id="tickerTrack" class="ticker-track">
+                <!-- Dynamically populated and animated in app.js -->
+            </div>
+        </div>
+        <div class="ticker-meta">
+            <span id="tickerLastUpdate" class="ticker-time">Sync: Real-time</span>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- HERO SECTION                               -->
+    <!-- ========================================== -->
+    <section id="heroSection" class="hero-section">
+        <div class="hero-container" id="heroCard">
+            <div class="hero-content">
+                <div class="hero-pill">
+                    <svg class="hero-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/><circle cx="12" cy="12" r="4"/></svg>
+                    <span>Smart Decision Engine for Indian Agriculture</span>
+                </div>
+                <h2 class="hero-heading" data-i18n="heroTitle">
+                    Sell Smart, Earn Maximum Profit for Every Quintal
+                </h2>
+                <p class="hero-description" data-i18n="heroSubtitle">
+                    Don't just sell at the nearest mandi. Compare real auction prices across 100+ national APMC terminals, find shortest highway driving routes, deduct transport freight & spoilage, and maximize your net returns.
+                </p>
+                <div class="hero-stats-row">
+                    <div class="hero-stat">
+                        <span class="hero-stat-num">100+</span>
+                        <span class="hero-stat-label">APMC Mandis</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-num">15+</span>
+                        <span class="hero-stat-label">Rural Hubs</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-num">Fastest</span>
+                        <span class="hero-stat-label">Truck Highway Routes</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-num">Max Profit</span>
+                        <span class="hero-stat-label">Truck Payload Planner</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-image-wrapper">
+                <img src="assets/images/hero_banner.jpg" alt="Indian Farmer with Smartphone at Sunrise" class="hero-img">
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- SECTION 1: MANDI PROFIT CALCULATOR         -->
+    <!-- ========================================== -->
+    <main class="main-content">
+        <section id="cropCalculatorSection" class="calc-section">
+            <div class="section-title-wrap">
+                <span class="section-overline">Compare Mandis & Maximize Profit</span>
+                <h2 class="section-title" data-i18n="calcHeader">Mandi Net Profit Recommendation Engine</h2>
+                <p class="section-subtitle" data-i18n="calcSubheader">Compare wholesale prices, deduct diesel freight & transit losses, and see your exact take-home earnings</p>
+            </div>
+
+            <div class="calc-card" id="calcCard">
+                <div id="errorAlert" class="alert alert-error hidden"></div>
+
+                <div class="form-grid">
+                    <!-- Crop Selection -->
+                    <div class="form-group">
+                        <label for="cropSelect" class="form-label" data-i18n="labelCrop">Select Harvest Crop</label>
+                        <select id="cropSelect" class="form-control form-select">
+                            <!-- Populated in app.js -->
+                        </select>
+                    </div>
+
+                    <!-- Quantity Input -->
+                    <div class="form-group">
+                        <label for="quantityInput" class="form-label" data-i18n="labelQuantity">Harvest Quantity (Quintals)</label>
+                        <input type="number" id="quantityInput" class="form-control" value="50" min="1" max="1000" placeholder="e.g. 50 (1 Quintal = 100 kg)">
+                    </div>
+
+                    <!-- Source Location / Farm Origin Selection -->
+                    <div class="form-group location-form-group">
+                        <label for="manualLocationInput" class="form-label" data-i18n="labelVillage">Your Source Location / Origin</label>
+                        <div class="location-search-wrap">
+                            <span class="loc-search-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
+                            </span>
+                            <input type="text" id="manualLocationInput" class="form-control" placeholder="Search village, city, district..." value="Junnar (Pune, Maharashtra)" autocomplete="off">
+                            <button type="button" id="btnClearManualLoc" class="btn-clear-loc hidden" title="Clear input" aria-label="Clear location input">✕</button>
+                            <div class="loc-embedded-actions">
+                                <button type="button" id="btnGpsQuick" class="loc-embed-btn" title="Detect Current GPS Location" aria-label="Detect GPS">
+                                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" x2="12" y1="2" y2="5"/><line x1="12" x2="12" y1="19" y2="22"/><line x1="2" x2="5" y1="12" y2="12"/><line x1="19" x2="22" y1="12" y2="12"/></svg>
+                                </button>
+                                <button type="button" id="btnMapPickQuick" class="loc-embed-btn" title="Pick Location on Interactive GIS Map" aria-label="Pick on Map">
+                                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" x2="9" y1="3" y2="18"/><line x1="15" x2="15" y1="6" y2="21"/></svg>
+                                </button>
+                            </div>
+                            <div id="locationSuggestionsDropdown" class="location-suggestions-dropdown hidden"></div>
+                        </div>
+                        <select id="villageSelect" class="form-control form-select hidden-select-compat">
+                            <!-- Populated in app.js for backwards compatibility -->
+                        </select>
+                    </div>
+
+                    <!-- Transport Vehicle Selection -->
+                    <div class="form-group">
+                        <label for="vehicleSelect" class="form-label" data-i18n="labelVehicle">Select Transport Mode</label>
+                        <select id="vehicleSelect" class="form-control form-select">
+                            <option value="BOLERO">Small Pickup (Bolero) - 25 qtl capacity (₹4.00/km/qtl)</option>
+                            <option value="TRACTOR" selected>Tractor Trolley - 45 qtl capacity (₹3.80/km/qtl)</option>
+                            <option value="EICHER">Medium Truck (Eicher 6W) - 90 qtl capacity (₹3.20/km/qtl)</option>
+                            <option value="HEAVY">Heavy Multi-Axle Truck - 180 qtl capacity (₹2.50/km/qtl)</option>
+                        </select>
+                    </div>
+
+                    <!-- Ranking Preference Selection -->
+                    <div class="form-group">
+                        <label for="algoSelect" class="form-label" data-i18n="labelSortAlgo">Sort Mandis By</label>
+                        <select id="algoSelect" class="form-control form-select">
+                            <option value="QUICK">Highest Take-Home Profit First (Fastest)</option>
+                            <option value="MERGE">Highest Take-Home Profit First (Balanced)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button id="btnCalculate" class="btn btn-primary btn-large">
+                        <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
+                        <span data-i18n="btnCalculate">Calculate & Rank Mandis</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- RESULTS CONTAINER -->
+            <div id="resultsContainer" class="results-section hidden">
+                <!-- Best Mandi Hero Spotlight -->
+                <div id="bestMandiHero" class="best-mandi-card">
+                    <!-- Populated dynamically -->
+                </div>
+
+                <!-- Farmer Profit Insight Callout -->
+                <div id="farmerInsightCard" class="insight-banner hidden">
+                    <!-- Populated dynamically -->
+                </div>
+
+                <!-- Export Bar -->
+                <div class="export-bar" id="exportSection">
+                    <div class="results-heading-group">
+                        <h3 class="results-subheading" data-i18n="resultsTitle">Ranked Mandi Recommendations</h3>
+                        <div class="mobile-scroll-hint"><span>Swipe horizontally or switch to Cards</span></div>
+                    </div>
+                    <div class="export-buttons">
+                        <div class="view-toggle-group">
+                            <button id="viewTableBtn" class="btn btn-sm btn-outline view-btn active-view" title="Table View">
+                                <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/></svg>
+                                <span>Table</span>
+                            </button>
+                            <button id="viewCardsBtn" class="btn btn-sm btn-outline view-btn" title="Card View">
+                                <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+                                <span>Cards</span>
+                            </button>
+                        </div>
+                        <button id="btnExportCSV" class="btn btn-outline btn-sm">
+                            <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                            <span data-i18n="btnExportCSV">Download CSV Report</span>
+                        </button>
+                        <button id="btnPrintReport" class="btn btn-outline btn-sm">
+                            <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                            <span data-i18n="btnPrint">Print / Save PDF</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Table Card View -->
+                <div class="table-responsive" id="tableViewWrapper">
+                    <table class="mandi-table" id="mandiTable">
+                        <thead>
+                            <tr>
+                                <th data-i18n="rankHeader">Rank</th>
+                                <th data-i18n="mandiHeader">Mandi & Location</th>
+                                <th data-i18n="distanceHeader">Shortest Dist</th>
+                                <th data-i18n="priceHeader">Auction Price</th>
+                                <th data-i18n="grossHeader">Gross Revenue</th>
+                                <th data-i18n="transportHeader">Freight Cost</th>
+                                <th data-i18n="netProfitHeader">Net Profit (₹)</th>
+                                <th data-i18n="routeHeader">Recommended Route</th>
+                                <th data-i18n="actionHeader">Connect Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mandiTableBody">
+                            <!-- Populated in app.js -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Responsive Card View for mobile and narrow screens -->
+                <div id="cardsViewWrapper" class="mandi-mobile-cards-grid hidden">
+                    <!-- Populated in app.js -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- SECTION 2: 0/1 KNAPSACK TRUCK OPTIMIZER    -->
+        <!-- ========================================== -->
+        <section id="knapsackSection" class="knapsack-section">
+            <div class="section-title-wrap">
+                <span class="section-overline">Truck Capacity & Loading</span>
+                <h2 class="section-title" data-i18n="knapsackTitle">Truck Load Planner & Weight Optimizer</h2>
+                <p class="section-subtitle" data-i18n="knapsackSubtitle">Select the best harvest lots to carry maximum profit without overloading your truck</p>
+            </div>
+
+            <div class="knapsack-card" id="knapsackCard">
+                <!-- Connected Destination Target Banner -->
+                <div class="knapsack-dest-banner" id="knapDestBanner">
+                    <div class="dest-badge">
+                        <span class="dest-pulse"></span>
+                        <span class="dest-tag">ACTIVE DISPATCH TARGET:</span>
+                        <strong id="knapTargetMandiName" class="dest-name">Azadpur APMC (Delhi)</strong>
+                        <span id="knapTargetMandiDist" class="dest-dist-pill">2,267 km</span>
+                    </div>
+                    <div class="dest-select-group">
+                        <label for="knapMandiSelect" class="dest-select-label">Change Destination:</label>
+                        <select id="knapMandiSelect" class="form-select dest-select" onchange="onKnapsackMandiChange(this.value)">
+                            <!-- Populated dynamically in app.js -->
+                        </select>
+                    </div>
+                </div>
+
+                <div class="knapsack-controls">
+                    <div class="capacity-input-wrap">
+                        <label for="truckCapacityInput" class="form-label" data-i18n="truckCapacityLabel">Truck Weight Capacity (Quintals)</label>
+                        <div class="input-inline">
+                            <input type="number" id="truckCapacityInput" class="form-control" value="60" min="10" max="250">
+                            <button id="btnOptimizeTruck" class="btn btn-primary" data-i18n="btnOptimizeTruck">Optimize Truck Load</button>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar for Capacity -->
+                    <div class="capacity-meter-box">
+                        <div class="meter-labels">
+                            <span>Truck Load Usage:</span>
+                            <span id="knapCapacityDisplay">60 qtl</span>
+                        </div>
+                        <div class="progress-track">
+                            <div id="knapProgressBar" class="progress-fill" style="width: 75%;">75%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="knapsack-summary-grid">
+                    <div class="knap-stat-card">
+                        <span class="knap-stat-label" data-i18n="loadedWeightLabel">Total Loaded Weight</span>
+                        <span id="knapLoadedDisplay" class="knap-stat-value">45 qtl</span>
+                    </div>
+                    <div class="knap-stat-card">
+                        <span class="knap-stat-label">Remaining Space</span>
+                        <span id="knapRemainingDisplay" class="knap-stat-value text-muted">15 qtl</span>
+                    </div>
+                    <div class="knap-stat-card highlight">
+                        <span class="knap-stat-label" data-i18n="maxProfitLabel">Maximized Net Profit</span>
+                        <span id="knapProfitDisplay" class="knap-stat-value text-profit">₹167,000</span>
+                    </div>
+                </div>
+
+                <div class="selected-lots-section">
+                    <div class="lots-header-row">
+                        <h4 class="subhead" data-i18n="selectedLotsTitle" style="margin-bottom:0;">Optimal Lots to Load</h4>
+                        <span class="lots-badge-count" id="knapLotsCountBadge">Selected Payload</span>
+                    </div>
+                    <div id="knapsackLotsList" class="selected-lots-grid">
+                        <!-- Populated dynamically -->
+                    </div>
+                    <div class="knapsack-dispatch-row">
+                        <button type="button" class="btn btn-primary btn-dispatch" onclick="dispatchTruckToMap()">
+                            <span class="btn-icon">🚚</span>
+                            <span>Dispatch Payload & Trace Route on GIS Road Network ──►</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- SECTION 3: BST PRICE SEARCH                -->
+        <!-- ========================================== -->
+        <section id="bstSection" class="bst-section">
+            <div class="section-title-wrap">
+                <span class="section-overline">Filter by Price Range</span>
+                <h2 class="section-title" data-i18n="bstTitle">Search Mandis by Price Range</h2>
+                <p class="section-subtitle" data-i18n="bstSubtitle">Find all wholesale mandis buying your harvest within your target minimum and maximum price</p>
+            </div>
+
+            <div class="bst-card" id="bstCard">
+                <div class="bst-inputs-grid">
+                    <div class="form-group">
+                        <label for="bstCropSelect" class="form-label" data-i18n="labelCrop">Crop</label>
+                        <select id="bstCropSelect" class="form-control form-select"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="bstMinPrice" class="form-label" data-i18n="minPriceLabel">Min Price (₹/qtl)</label>
+                        <input type="number" id="bstMinPrice" class="form-control" value="2400">
+                    </div>
+                    <div class="form-group">
+                        <label for="bstMaxPrice" class="form-label" data-i18n="maxPriceLabel">Max Price (₹/qtl)</label>
+                        <input type="number" id="bstMaxPrice" class="form-control" value="2800">
+                    </div>
+                    <div class="form-group btn-align">
+                        <button id="btnSearchBST" class="btn btn-primary" data-i18n="btnSearchBST">Find Mandis in Price Range</button>
+                    </div>
+                </div>
+
+                <div id="bstResultsList" class="bst-results-grid">
+                    <!-- Populated in app.js -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- SECTION 4: REAL GEOGRAPHIC MAP OF INDIA    -->
+        <!-- ========================================== -->
+        <section id="graphVisualizerSection" class="graph-section">
+            <div class="section-title-wrap">
+                <span class="section-overline">Live Highway Navigation</span>
+                <h2 class="section-title" data-i18n="graphTitle">All-India APMC Mandi Road Map</h2>
+                <p class="section-subtitle" data-i18n="graphSubtitle">Explore wholesale mandis, connecting national highways, and real truck driving routes across India</p>
+            </div>
+
+            <div class="map-card" id="mapCard">
+                <!-- Map Top Toolbar: View Toggles & Map Layer Switching -->
+                <div class="map-toolbar">
+                    <div class="map-view-toggles">
+                        <button type="button" id="btnViewAllIndia" class="map-toggle-btn active" title="Zoom to All-India National Mandi Corridors">
+                            <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                            <span data-i18n="btnViewAllIndia">All-India Corridors</span>
+                        </button>
+                        <button type="button" id="btnViewMaharashtra" class="map-toggle-btn" title="Focus on Maharashtra APMC Hubs & Villages">
+                            <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                            <span data-i18n="btnViewMaharashtra">Maharashtra Network</span>
+                        </button>
+                        <button type="button" id="btnFocusRoute" class="map-toggle-btn" title="Zoom to fit the calculated driving route">
+                            <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                            <span data-i18n="btnFocusRoute">Show Driving Route</span>
+                        </button>
+                        <button type="button" id="btnMapPickOrigin" class="map-toggle-btn origin-pick-toggle" title="Click or tap anywhere on the map to set your farm location">
+                            <span class="btn-dot-pulsing"></span>
+                            <span>📍 Pick Farm on Map</span>
+                        </button>
+                    </div>
+
+                    <!-- Instant Mandi Search & Filter Bar -->
+                    <div class="map-search-wrapper">
+                        <span class="map-search-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
+                        </span>
+                        <input type="text" id="mapMandiSearchInput" class="map-search-input" placeholder="Search 100+ mandis or states..." autocomplete="off">
+                        <button type="button" id="btnClearMapSearch" class="map-search-clear-btn hidden" title="Clear search">✕</button>
+                    </div>
+                    
+                    <div class="map-layer-toggles">
+                        <button type="button" id="btnLayerVoyager" class="map-layer-btn active" title="OpenStreetMap Clean Roads">
+                            <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" x2="9" y1="3" y2="18"/><line x1="15" x2="15" y1="6" y2="21"/></svg>
+                            <span>Streets</span>
+                        </button>
+                        <button type="button" id="btnLayerDark" class="map-layer-btn" title="Esri Dark Gray Canvas Mode">
+                            <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+                            <span>Night</span>
+                        </button>
+                        <button type="button" id="btnLayerSatellite" class="map-layer-btn" title="Esri World Satellite Imagery">
+                            <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                            <span>Satellite</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Map Legend -->
+                <div class="map-legend">
+                    <span class="legend-item"><span class="legend-dot national-dot"></span> <strong>National APMC Hub</strong></span>
+                    <span class="legend-item"><span class="legend-dot state-dot"></span> <strong>State Mandi</strong></span>
+                    <span class="legend-item"><span class="legend-dot village-dot"></span> <strong>Source Village</strong></span>
+                    <span class="legend-item"><span class="legend-line route-line"></span> <strong>Recommended Route</strong></span>
+                    <span class="legend-item"><span class="legend-line nh-corridor-line"></span> <strong>Highway Network</strong></span>
+                    <span class="legend-live-tag"><span class="live-dot"></span> <strong>Live Mandi Ticks</strong></span>
+                    <span class="legend-hint">💡 <em>Click any pin to inspect area & live auction rates</em></span>
+                </div>
+
+                <!-- Map Picking Mode Floating Banner -->
+                <div id="mapPickingBanner" class="map-picking-banner hidden">
+                    <div class="picking-banner-content">
+                        <span class="picking-pulse-icon">📍</span>
+                        <span class="picking-banner-text"><strong>Map Location Mode:</strong> Click or tap anywhere across India to drop your farm origin</span>
+                    </div>
+                    <button type="button" id="btnCancelMapPick" class="btn-cancel-pick">Done / Exit</button>
+                </div>
+
+                <!-- Leaflet Real Map Container -->
+                <div id="indiaLeafletMap" class="leaflet-map-wrapper"></div>
+
+                <!-- Map Footer Info Bar -->
+                <div class="map-info-bar">
+                    <div class="map-info-item">
+                        <span class="map-info-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                        </span>
+                        <span id="mapOriginDisplay">Origin: <strong>Select a village</strong></span>
+                    </div>
+                    <div class="map-info-item">
+                        <span class="map-info-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 10h1"/><path d="M9 14h1"/><path d="M9 18h1"/><path d="M14 10h1"/><path d="M14 14h1"/><path d="M14 18h1"/></svg>
+                        </span>
+                        <span id="mapDestDisplay">Target Mandi: <strong>Select or calculate</strong></span>
+                    </div>
+                    <div class="map-info-item">
+                        <span class="map-info-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg>
+                        </span>
+                        <span id="mapRouteMetaDisplay">Shortest Path: <strong>Run calculation to plot route</strong></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- SECTION 5: BENCHMARK & VIVA INSPECTOR      -->
+        <!-- ========================================== -->
+        <section id="benchmarkSection" class="benchmark-section">
+            <div class="section-title-wrap">
+                <span class="section-overline">System Speed & Calculation Accuracy</span>
+                <h2 class="section-title" data-i18n="benchmarkTitle">System Speed & Calculation Accuracy</h2>
+                <p class="section-subtitle" data-i18n="benchmarkSubtitle">Live verification of sorting speed, route calculations, and computational accuracy</p>
+            </div>
+
+            <div class="benchmark-grid">
+                <div class="bench-card">
+                    <div class="bench-header">
+                        <span class="bench-tag">Current Execution</span>
+                        <h4 id="benchAlgoName" class="bench-title">QuickSort</h4>
+                    </div>
+                    <div class="bench-body">
+                        <div class="bench-metric">
+                            <span class="metric-label">Comparisons:</span>
+                            <span id="benchComps" class="metric-val">21</span>
+                        </div>
+                        <div class="bench-metric">
+                            <span class="metric-label">Swaps / Merges:</span>
+                            <span id="benchSwaps" class="metric-val">19 swaps</span>
+                        </div>
+                        <div class="bench-metric">
+                            <span class="metric-label">Execution Time:</span>
+                            <span id="benchTime" class="metric-val">0.120 ms</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bench-card info-card">
+                    <div class="bench-header">
+                        <span class="bench-tag">System Transparency</span>
+                        <h4 class="bench-title">How Our Calculations Help You Earn More</h4>
+                    </div>
+                    <div class="viva-bullets">
+                        <p>• <strong>Shortest Highway Routes:</strong> Finds the quickest all-weather road route to save diesel fuel and travel time.</p>
+                        <p>• <strong>Instant Profit Ranking:</strong> Compares over 100 wholesale mandis in milliseconds so you never miss high auction prices.</p>
+                        <p>• <strong>Guaranteed Fair Comparison:</strong> Balances market rates against toll and freight costs to show real take-home cash.</p>
+                        <p>• <strong>Smart Truck Payload Planner:</strong> Maximizes harvest load value within your truck's legal capacity to avoid overload fines.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ========================================== -->
+    <!-- FOOTER                                     -->
+    <!-- ========================================== -->
+    <footer class="app-footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <div class="brand-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+                        <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+                    </svg>
+                </div>
+                <div>
+                    <h4>Kisan Mandi Connect (किसान मंडी कनेक्ट)</h4>
+                    <p class="text-xs text-muted">College Mini Project in Core Java & Web Technologies • All image assets are royalty-free & non-copyright</p>
+                </div>
+            </div>
+            <div class="footer-note">
+                <p>Designed for Indian Farmers with Support for English + 12 Indian Regional Languages.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modern Floating Notification Toast Container -->
+    <div id="kisanToastContainer" class="kisan-toast-container"></div>
+
+    <!-- Scripts -->
+    <!-- Leaflet JS for Real India Map -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="i18n.js"></script>
+    <script src="app.js?v=20261024_userloc"></script>
+</body>
+</html>

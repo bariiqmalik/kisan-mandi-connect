@@ -1,0 +1,28 @@
+# Build Artifacts
+target/
+*.class
+
+# IDE & Editor Configs
+.vscode/
+.idea/
+*.iml
+
+# Agent & AI Tooling Metadata
+.agent/
+.agents/
+.gemini/
+.gsd/
+GSD-STYLE.md
+PROJECT_RULES.md
+model_capabilities.yaml
+
+# Unrelated Repositories & Subfolders
+Bharat_Digital_Healthcare/
+portfolio/
+unigrade-pro/
+kisan-mandi-connect/
+
+# System Files & Logs
+.DS_Store
+Thumbs.db
+*.log
