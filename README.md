@@ -1,6 +1,12 @@
 # Kisan Mandi Connect (किसान मंडी कनेक्ट)
 ### Agricultural Decision Support & Logistics Optimization System for Indian Farmers
 
+[![Java 17](https://img.shields.io/badge/Java-17%2B-ED8B00?style=flat-square&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
+[![Build Maven](https://img.shields.io/badge/Build-Maven-C71A36?style=flat-square&logo=apache-maven&logoColor=white)](https://maven.apache.org/)
+[![Tests JUnit 5](https://img.shields.io/badge/Tests-JUnit%205%20(15%20Passing)-25A162?style=flat-square&logo=junit5&logoColor=white)](https://junit.org/junit5/)
+[![GitHub Stars](https://img.shields.io/github/stars/bariiqmalik/kisan-mandi-connect?style=flat-square&color=gold)](https://github.com/bariiqmalik/kisan-mandi-connect/stargazers)
+
+
 A comprehensive Java mini-project for college curriculum integrating Core Java, Object-Oriented Programming (OOP), Data Structures & Algorithms (DSA), Exception Handling, and File I/O.
 
 ---
@@ -111,3 +117,9 @@ javac -d target/classes src/main/java/com/kisan/**/*.java
 # Run
 java -cp target/classes com.kisan.Main
 ```
+
+---
+
+## ⭐ Support & Star
+
+If this project helped you learn handcrafted Data Structures & Algorithms, Dijkstra's algorithm, or 0/1 Knapsack in Core Java, **please consider starring (⭐) this repository!**
