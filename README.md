@@ -123,3 +123,11 @@ java -cp target/classes com.kisan.Main
 ## ⭐ Support & Star
 
 If this project helped you learn handcrafted Data Structures & Algorithms, Dijkstra's algorithm, or 0/1 Knapsack in Core Java, **please consider starring (⭐) this repository!**
+---
+
+## 🔍 Explore More Projects by Bariq Malik
+
+- 🎓 **[UniGrade Pro](https://github.com/bariiqmalik/unigrade-pro)** — Modern academic grade tracking, GPA/CGPA computation, and attendance predictor ([Live App](https://unigrade-pro.vercel.app)).
+- ⚡ **[netopt](https://github.com/bariiqmalik/netopt)** — High-performance C++20 network cabling optimization engine ([Live Benchmark Demo](https://bariiqmalik.github.io/netopt/)).
+- 👗 **[Fitting Room AI](https://github.com/bariiqmalik/fitcheck)** — Smart digitized wardrobe & personal stylist platform (React, Vite, Supabase).
+- 💼 **[Portfolio](https://github.com/bariiqmalik/portfolio)** — Developer portfolio ([Live Site](https://bariiqmalik.github.io/portfolio/)).
